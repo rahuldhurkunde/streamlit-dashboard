@@ -2,3 +2,4 @@ streamlit
 pandas
 # Added for fetching stock prices
 yfinance
+plotly

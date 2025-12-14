@@ -36,7 +36,13 @@ def calculate_rsi(df):
         ma_up = up.ewm(alpha=1/rsi_period, adjust=False).mean()
         ma_down = down.ewm(alpha=1/rsi_period, adjust=False).mean()
         rs = ma_up / ma_down
-        rsi = 100 - (100 / (1 + rs))
+        rsi = 100.0 - (100.0 / (1.0 + rs))
+
+        # Handle cases where ma_down can be 0
+        rsi[ma_down == 0] = 100.0
+        # Handle cases where both ma_up and ma_down are 0
+        rsi[(ma_up == 0) & (ma_down == 0)] = 50.0
+        
         rsi.index = series.index
         rsi_frames[ticker] = rsi
 

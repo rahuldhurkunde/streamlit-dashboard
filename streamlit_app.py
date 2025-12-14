@@ -4,6 +4,8 @@ from datetime import date, timedelta
 from utils import get_price_data, set_page_config
 from indicators import add_moving_average, add_52w_high_low, calculate_rsi
 from news import get_news
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Set the title and favicon that appear in the Browser's tab bar.
 set_page_config()
@@ -78,6 +80,12 @@ else:
 
         st.header('Prices over time', divider='gray')
 
+        # Create a subplot figure with 2 rows if RSI is selected
+        rows = 2 if 'RSI (14)' in selected_indicators else 1
+        row_heights = [0.7, 0.3] if 'RSI (14)' in selected_indicators else [1]
+        fig = make_subplots(rows=rows, cols=1, shared_xaxes=True, vertical_spacing=0.05, row_heights=row_heights)
+
+
         # Build a DataFrame to draw on the main price chart (price + MA + 52w)
         plot_df = pivot_df.copy()
 
@@ -87,7 +95,20 @@ else:
         if '52w High/Low' in selected_indicators:
             plot_df = add_52w_high_low(plot_df)
 
-        st.line_chart(plot_df)
+        for col in plot_df.columns:
+            fig.add_trace(go.Scatter(x=plot_df.index, y=plot_df[col], name=col), row=1, col=1)
+
+        # If RSI is selected, show a separate chart below.
+        if 'RSI (14)' in selected_indicators:
+            rsi_df = calculate_rsi(pivot_df)
+            if not rsi_df.empty:
+                for col in rsi_df.columns:
+                    fig.add_trace(go.Scatter(x=rsi_df.index, y=rsi_df[col], name=f'{col} RSI'), row=2, col=1)
+                fig.update_yaxes(title_text="RSI", row=2, col=1)
+
+
+        fig.update_layout(height=500, title_text="Stock Prices")
+        st.plotly_chart(fig, use_container_width=True)
 
         st.header(f'Prices at end of range ({end_date.isoformat()})', divider='gray')
 
@@ -119,13 +140,6 @@ else:
                     delta=growth,
                     delta_color=delta_color,
                 )
-
-        # If RSI is selected, show a separate chart below.
-        if 'RSI (14)' in selected_indicators:
-            rsi_df = calculate_rsi(pivot_df)
-            if not rsi_df.empty:
-                st.header('RSI (14) over time', divider='gray')
-                st.line_chart(rsi_df)
 
         st.header('News Headlines', divider='gray')
         
