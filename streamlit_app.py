@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import date, timedelta
 from utils import get_price_data, set_page_config
 from indicators import add_moving_average, add_52w_high_low, calculate_rsi
+from news import get_news
 
 # Set the title and favicon that appear in the Browser's tab bar.
 set_page_config()
@@ -125,3 +126,17 @@ else:
             if not rsi_df.empty:
                 st.header('RSI (14) over time', divider='gray')
                 st.line_chart(rsi_df)
+
+        st.header('News Headlines', divider='gray')
+        
+        news_ticker = st.selectbox('Select ticker for news', final_tickers)
+
+        if st.button('Get News'):
+            if news_ticker:
+                news = get_news(news_ticker)
+                if news:
+                    for article in news:
+                        st.markdown(f"**{article['headline']}** ({article['publisher']})")
+                        st.markdown(f"[Read more]({article['link']})")
+                else:
+                    st.write(f"No news found for {news_ticker}")
