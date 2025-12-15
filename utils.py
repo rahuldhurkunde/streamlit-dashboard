@@ -3,11 +3,11 @@ import pandas as pd
 import yfinance as yf
 from datetime import date, timedelta
 
-def set_page_config():
+def set_page_config(page_title='Stock Prices dashboard', page_icon=':chart_with_upwards_trend:'):
     # Set the title and favicon that appear in the Browser's tab bar.
     st.set_page_config(
-        page_title='Stock Prices dashboard',
-        page_icon=':chart_with_upwards_trend:',
+        page_title=page_title,
+        page_icon=page_icon,
     )
 
 @st.cache_data(ttl=60 * 60 * 24)

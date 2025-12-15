@@ -23,6 +23,8 @@ st.markdown("""
 Browse historical stock prices using `yfinance`.
 """)
 
+st.page_link("pages/in_depth_analysis.py", label="Go to In-depth Analysis", icon="🔬")
+
 # date range selectors
 today = date.today()
 one_year_ago = today - timedelta(days=365)
@@ -78,9 +80,13 @@ else:
         )
 
         # If MA is selected, allow the user to pick a window
-        ma_period = None
+        ma_periods = []
         if any('Moving Average' in s for s in selected_indicators):
-            ma_period = st.number_input('Moving Average period (days)', min_value=2, max_value=500, value=50)
+            ma_input = st.text_input('Moving Average periods (days, comma-separated)', value='50')
+            try:
+                ma_periods = [int(p.strip()) for p in ma_input.split(',') if p.strip()]
+            except ValueError:
+                st.error("Invalid input for Moving Average periods. Please use integers separated by commas (e.g., '50, 200').")
 
         st.header('Prices over time', divider='gray')
 
@@ -95,8 +101,8 @@ else:
         # Build a DataFrame to draw on the main price chart (price + MA + 52w)
         plot_df = pivot_df.copy()
 
-        if 'Moving Average (MA)' in selected_indicators and ma_period:
-            plot_df = add_moving_average(plot_df, ma_period)
+        if 'Moving Average (MA)' in selected_indicators and ma_periods:
+            plot_df = add_moving_average(plot_df, ma_periods)
 
         if '52w High/Low' in selected_indicators:
             plot_df = add_52w_high_low(plot_df)

@@ -1,11 +1,24 @@
 import pandas as pd
 
-def add_moving_average(df, ma_period):
-    """Adds a moving average column to the DataFrame."""
-    for ticker in df.columns:
-        if ticker.endswith(('_MA', '_52w_high', '_52w_low')):
+def add_moving_average(df, ma_periods):
+    """Adds moving average columns to the DataFrame.
+    
+    Args:
+        df (pd.DataFrame): The dataframe with price data.
+        ma_periods (int or list of int): Period(s) for the moving average.
+    """
+    if isinstance(ma_periods, int):
+        ma_periods = [ma_periods]
+
+    # Use a list snapshot of columns to avoid iterating over newly added columns
+    cols = list(df.columns)
+    for ticker in cols:
+        # Skip columns that look like indicators
+        if '_MA' in ticker or '_52w' in ticker:
             continue
-        df[f'{ticker}_MA{ma_period}'] = df[ticker].rolling(window=ma_period, min_periods=1).mean()
+            
+        for period in ma_periods:
+            df[f'{ticker}_MA{period}'] = df[ticker].rolling(window=period, min_periods=1).mean()
     return df
 
 def add_52w_high_low(df):
