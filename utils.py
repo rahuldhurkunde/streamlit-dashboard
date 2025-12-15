@@ -23,7 +23,8 @@ def get_price_data(tickers, start_date, end_date):
             hist = yf.Ticker(ticker).history(start=start_date, end=end_date)
             if hist.empty:
                 continue
-            df = hist[['Close']].reset_index().rename(columns={'Close': 'Price'})
+            df = hist[['Open', 'High', 'Low', 'Close']].reset_index()
+            df = df.rename(columns={'Close': 'Price'})
             df['Ticker'] = ticker
             frames.append(df)
         except Exception:

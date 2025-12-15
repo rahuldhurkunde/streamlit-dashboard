@@ -90,7 +90,11 @@ else:
 
         st.header('Prices over time', divider='gray')
 
-        log_scale = st.checkbox('Log Scale', value=False)
+        col_ctrl1, col_ctrl2 = st.columns([1, 4])
+        with col_ctrl1:
+             chart_type = st.radio("Chart Type", ["Line", "Candle"], horizontal=True)
+        with col_ctrl2:
+             log_scale = st.checkbox('Log Scale', value=False)
 
         # Create a subplot figure with 2 rows if RSI is selected
         rows = 2 if 'RSI (14)' in selected_indicators else 1
@@ -107,8 +111,33 @@ else:
         if '52w High/Low' in selected_indicators:
             plot_df = add_52w_high_low(plot_df)
 
-        for col in plot_df.columns:
-            fig.add_trace(go.Scatter(x=plot_df.index, y=plot_df[col], name=col), row=1, col=1)
+        # Main Plot Logic
+        if chart_type == "Line":
+            for col in plot_df.columns:
+                fig.add_trace(go.Scatter(x=plot_df.index, y=plot_df[col], name=col), row=1, col=1)
+        else:
+            # Candlestick Plot
+            # 1. Plot Candles for each ticker
+            for ticker in final_tickers:
+                # Filter price_df for this ticker
+                ticker_data = price_df[price_df['Ticker'] == ticker]
+                if not ticker_data.empty:
+                    fig.add_trace(go.Candlestick(
+                        x=ticker_data['Date'],
+                        open=ticker_data['Open'],
+                        high=ticker_data['High'],
+                        low=ticker_data['Low'],
+                        close=ticker_data['Price'],
+                        name=ticker
+                    ), row=1, col=1)
+            
+            # 2. Plot Indicators (MAs, etc.) - exclude the raw Ticker columns since we drew candles
+            # Raw ticker columns match 'final_tickers'
+            for col in plot_df.columns:
+                if col not in final_tickers:
+                    fig.add_trace(go.Scatter(x=plot_df.index, y=plot_df[col], name=col), row=1, col=1)
+            
+            fig.update_layout(xaxis_rangeslider_visible=False)
 
         # If RSI is selected, show a separate chart below.
         if 'RSI (14)' in selected_indicators:

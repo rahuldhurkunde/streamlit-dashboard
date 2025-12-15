@@ -60,11 +60,28 @@ if ticker:
         # 3. Plot Price Chart (Entirety)
         st.subheader(f"{ticker} - All Time Price History")
         
+        col1, col2 = st.columns([1, 4])
+        with col1:
+            chart_type = st.radio("Chart Type", ["Line", "Candle"], key="chart_type_indepth")
+        with col2:
+            # Add log scale option
+            log_scale = st.checkbox("Log Scale", value=True, key="log_scale_indepth")
+
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=hist.index, y=hist['Close'], name='Close', line=dict(width=1)))
         
-        # Add log scale option
-        log_scale = st.checkbox("Log Scale", value=True, key="log_scale_indepth")
+        if chart_type == "Line":
+            fig.add_trace(go.Scatter(x=hist.index, y=hist['Close'], name='Close', line=dict(width=1)))
+        else:
+            fig.add_trace(go.Candlestick(
+                x=hist.index,
+                open=hist['Open'],
+                high=hist['High'],
+                low=hist['Low'],
+                close=hist['Close'],
+                name=ticker
+            ))
+            fig.update_layout(xaxis_rangeslider_visible=False)
+        
         fig.update_layout(
             height=500,
             yaxis_type="log" if log_scale else "linear",
@@ -257,7 +274,7 @@ if ticker:
                 width: 100%;
                 border-collapse: collapse;
                 font-family: sans-serif;
-                font-size: 0.6em;
+                font-size: 0.65em;
             }
             table.stats-table td {
                 border: 1px solid #555;
@@ -298,7 +315,7 @@ if ticker:
 
         items = list(data_grid.items())
         total_items = len(items)
-        cols_per_row = 3 # Pairs of (Metric, Value)
+        cols_per_row = 4 # Pairs of (Metric, Value)
         
         for i in range(0, total_items, cols_per_row):
             html_table += "<tr>"
