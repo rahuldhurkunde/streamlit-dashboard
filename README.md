@@ -1,5 +1,7 @@
 # Stock Prices dashboard
 
+Hosted on the Streamlit community server: [https://app-dashboard-dzcw6pagkmxzz39gzbqf2n.streamlit.app](https://app-dashboard-dzcw6pagkmxzz39gzbqf2n.streamlit.app)
+
 A simple Streamlit app for browsing historical stock prices using the `yfinance` package.
 
 Features:
