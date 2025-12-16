@@ -4,3 +4,4 @@ watchdog
 # Added for fetching stock prices
 yfinance
 plotly
+pytest
