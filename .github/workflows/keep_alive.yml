@@ -11,4 +11,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping App URL
-        run: curl -I -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" https://app-dashboard-dzcw6pagkmxzz39gzbqf2n.streamlit.app
+        run: curl -f -s -o /dev/null -w "HTTP Status: %{http_code}\n" -L --max-time 30 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" https://app-dashboard-dzcw6pagkmxzz39gzbqf2n.streamlit.app
