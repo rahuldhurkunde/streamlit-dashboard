@@ -5,3 +5,4 @@ watchdog
 yfinance
 plotly
 pytest
+scikit-learn
