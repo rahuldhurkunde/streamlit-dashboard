@@ -2,8 +2,8 @@ name: Keep App Alive
 
 on:
   schedule:
-    # Run every hour to keep the app active
-    - cron: "0 * * * *"
+    # Run every 15 minutes to keep the app active
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -11,4 +11,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping App URL
-        run: curl -I https://app-dashboard-dzcw6pagkmxzz39gzbqf2n.streamlit.app
+        run: curl -I -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" https://app-dashboard-dzcw6pagkmxzz39gzbqf2n.streamlit.app
