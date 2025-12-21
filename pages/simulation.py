@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 import simulation_lib
@@ -16,7 +17,7 @@ This tool allows you to simulate a stock's performance and test prediction model
 2. Select a Prediction Date (must be after the simulation end).
 3. The model trains on data from **Start to End**.
 4. It predicts prices from **End to Prediction Date**.
-5. We also simulate a Wallet's growth from the simulation End to the Prediction Date..
+5. We also simulate a Wallet's growth over the entire period.
 """)
 
 # --- Sidebar Inputs ---
@@ -77,11 +78,19 @@ if st.sidebar.button("Run Simulation"):
             
             df_all = utils.get_price_data([ticker], start_date, fetch_end_date + timedelta(days=5))
             
+            # Fetch S&P 500 data for comparison
+            sp500_ticker = "^GSPC"
+            df_sp500 = utils.get_price_data([sp500_ticker], start_date, fetch_end_date + timedelta(days=5))
+            
             if df_all.empty:
                 st.error(f"No data found for {ticker} in the given range.")
             else:
                 # Ensure Date is datetime for pandas ops (utils returns date objects usually, let's standardize)
                 df_all['Date'] = pd.to_datetime(df_all['Date'])
+                if not df_sp500.empty:
+                    df_sp500['Date'] = pd.to_datetime(df_sp500['Date'])
+                    # Filter S&P 500 data to match the simulation range (Start -> Predicted Date)
+                    df_sp500 = df_sp500[df_sp500['Date'] <= pd.to_datetime(fetch_end_date)]
                 
                 # 2. Split Data
                 # Training: <= End Date
@@ -144,15 +153,18 @@ if st.sidebar.button("Run Simulation"):
                     
                     # --- Visualization ---
                     
-                    # Chart 1: Price vs Prediction
-                    fig_price = go.Figure()
+                    # Chart 1: Price vs Prediction (with S&P 500 subplot)
+                    fig_price = make_subplots(rows=2, cols=1, shared_xaxes=True, 
+                                              vertical_spacing=0.1, 
+                                              subplot_titles=(f"{ticker} Price Simulation", "S&P 500 Index"),
+                                              row_heights=[0.7, 0.3])
                     
                     # Historical
                     fig_price.add_trace(go.Scatter(
                         x=df_train['Date'], y=df_train['Price'],
                         mode='lines', name='Historical Price',
                         line=dict(color='blue')
-                    ))
+                    ), row=1, col=1)
                     
                     # Actual Future (if exists)
                     if not df_test.empty:
@@ -160,14 +172,14 @@ if st.sidebar.button("Run Simulation"):
                             x=df_test['Date'], y=df_test['Price'],
                             mode='lines', name='Actual Future Price',
                             line=dict(color='green')
-                        ))
+                        ), row=1, col=1)
                     
                     # Prediction
                     fig_price.add_trace(go.Scatter(
                         x=df_pred['Date'], y=df_pred['Predicted'],
                         mode='lines', name='Predicted Price',
                         line=dict(color='orange', dash='dash')
-                    ))
+                    ), row=1, col=1)
                     
                     # Uncertainty Bands
                     fig_price.add_trace(go.Scatter(
@@ -177,9 +189,21 @@ if st.sidebar.button("Run Simulation"):
                         fillcolor='rgba(255, 165, 0, 0.2)',
                         line=dict(color='rgba(255,255,255,0)'),
                         name=f'Uncertainty ({uncertainty_pct:.0f}%)'
-                    ))
+                    ), row=1, col=1)
                     
-                    fig_price.update_layout(title=f"{ticker} Price Simulation", xaxis_title="Date", yaxis_title="Price ($)")
+                    # S&P 500 Trace
+                    if not df_sp500.empty:
+                        fig_price.add_trace(go.Scatter(
+                            x=df_sp500['Date'], y=df_sp500['Price'],
+                            mode='lines', name='S&P 500',
+                            line=dict(color='gray')
+                        ), row=2, col=1)
+                    
+                    fig_price.update_layout(height=600, xaxis_title="Date", yaxis_title="Price ($)")
+                    # Update y-axis titles for subplots
+                    fig_price.update_yaxes(title_text="Price ($)", row=1, col=1)
+                    fig_price.update_yaxes(title_text="Index Value", row=2, col=1)
+                    
                     st.plotly_chart(fig_price, width='stretch')
                     
                     # Chart 2: Wallet Value
